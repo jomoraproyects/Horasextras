@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Registro y exportación de novedades de horas extras para nómina.">
+  <title>Registro de Horas Extras</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23173b57'/%3E%3Ccircle cx='29' cy='31' r='17' fill='none' stroke='%23fff' stroke-width='5'/%3E%3Cpath d='M29 20v12l8 5' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M47 17v14M40 24h14' stroke='%2338a8e8' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><circle cx="21" cy="25" r="13"></circle><path d="M21 17v9l6 4M34 9v11M29 14h11"></path></svg>
+      </span>
+      <div>
+        <h1>Registro de Horas Extras</h1>
+        <p>Prepara el archivo para nómina</p>
+      </div>
+    </div>
+    <span class="privacy-badge">No requiere salarios</span>
+  </header>
+
+  <main class="page-shell">
+    <section class="period-card" aria-labelledby="period-title">
+      <div class="section-heading">
+        <div>
+          <span class="step">1</span>
+          <div>
+            <h2 id="period-title">Periodo de nómina</h2>
+            <p>Se aplicará a todos los registros.</p>
+          </div>
+        </div>
+        <div class="derived-period" aria-live="polite">
+          <span>Año <strong id="period-year">—</strong></span>
+          <span>Mes <strong id="period-month">—</strong></span>
+        </div>
+      </div>
+      <div class="period-fields">
+        <label>Fecha inicial<input id="start-date" type="date" required></label>
+        <span class="date-arrow" aria-hidden="true">→</span>
+        <label>Fecha final<input id="end-date" type="date" required></label>
+      </div>
+    </section>
+
+    <section class="records-card" aria-labelledby="records-title">
+      <div class="section-heading records-heading">
+        <div>
+          <span class="step">2</span>
+          <div>
+            <h2 id="records-title">Novedades</h2>
+            <p>Ingresa una fila por empleado y concepto.</p>
+          </div>
+        </div>
+        <div class="table-actions">
+          <button id="load-example" class="button button-ghost" type="button">Cargar ejemplo</button>
+          <button id="add-row" class="button button-secondary" type="button">
+            <span aria-hidden="true">＋</span> Agregar fila
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Identificación</th>
+              <th scope="col">Concepto</th>
+              <th scope="col">Número de horas</th>
+              <th scope="col"><span class="sr-only">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody id="records-body"></tbody>
+        </table>
+      </div>
+
+      <div class="summary-strip" aria-live="polite">
+        <div><span>Empleados</span><strong id="employee-count">0</strong></div>
+        <div><span>Registros finales</span><strong id="record-count">0</strong></div>
+        <div><span>Total de horas</span><strong id="hours-total">0</strong></div>
+      </div>
+    </section>
+
+    <section class="export-card" aria-labelledby="export-title">
+      <div>
+        <span class="step">3</span>
+        <div>
+          <h2 id="export-title">Archivo para nómina</h2>
+          <p id="status-message" role="status">Completa los datos para descargar el Excel.</p>
+        </div>
+      </div>
+      <div class="export-actions">
+        <button id="clear-all" class="button button-ghost danger" type="button">Limpiar</button>
+        <button id="download" class="button button-primary" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 20h14"></path></svg>
+          Descargar Excel
+        </button>
+      </div>
+    </section>
+
+    <details class="format-details">
+      <summary>Ver formato que se descargará</summary>
+      <div class="preview-wrap">
+        <table class="preview-table">
+          <thead><tr><th>IDENTIFICACION</th><th>CODCONCEPTO</th><th>FECHA_PRO_INI</th><th>FECHA_PRO_FIN</th><th>NROHORAS</th><th>AÑO</th><th>MES</th></tr></thead>
+          <tbody id="preview-body"><tr><td colspan="7">Agrega registros para ver la vista previa.</td></tr></tbody>
+        </table>
+      </div>
+    </details>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./excel.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

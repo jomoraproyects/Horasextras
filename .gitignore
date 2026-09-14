@@ -1,0 +1,4 @@
+deploy/
+.sites-runtime/
+.openai/
+*.log
