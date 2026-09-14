@@ -81,10 +81,10 @@
   function renderRows() {
     elements.body.innerHTML = rows.map((row, index) => `
       <tr data-key="${row.key}">
-        <td data-label="Identificación"><div class="id-field"><span class="row-number">${index + 1}</span><input class="identification" inputmode="numeric" autocomplete="off" maxlength="15" aria-label="Identificación de la fila ${index + 1}" placeholder="Ej. 100000001" value="${escapeHtml(row.identification)}"></div></td>
-        <td data-label="Concepto"><select class="concept" aria-label="Concepto de la fila ${index + 1}">${conceptOptions(row.concept)}</select></td>
-        <td data-label="Número de horas"><input class="hours" type="number" min="0.01" max="999.99" step="0.01" inputmode="decimal" aria-label="Número de horas de la fila ${index + 1}" placeholder="0" value="${escapeHtml(row.hours)}"></td>
-        <td class="row-action"><button class="remove-row" type="button" aria-label="Eliminar fila ${index + 1}" title="Eliminar fila"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"></path></svg></button></td>
+        <td><div class="id-field"><span class="row-number">${index + 1}</span><input class="identification" inputmode="numeric" autocomplete="off" maxlength="15" aria-label="Identificación de la fila ${index + 1}" placeholder="Ej. 100000001" value="${escapeHtml(row.identification)}"></div></td>
+        <td><select class="concept" aria-label="Concepto de la fila ${index + 1}">${conceptOptions(row.concept)}</select></td>
+        <td><input class="hours" type="number" min="0.01" max="999.99" step="0.01" inputmode="decimal" aria-label="Número de horas de la fila ${index + 1}" placeholder="0" value="${escapeHtml(row.hours)}"></td>
+        <td><button class="remove-row" type="button" aria-label="Eliminar fila ${index + 1}" title="Eliminar fila">×</button></td>
       </tr>`).join("");
     updateSummary();
   }
