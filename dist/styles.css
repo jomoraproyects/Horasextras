@@ -122,6 +122,8 @@ input.invalid, select.invalid { border-color: var(--danger); box-shadow: 0 0 0 3
 .button-ghost.danger { color: var(--danger); }
 #add-row { background: #17824c; }
 #add-row:hover { background: #106b3d; }
+#download { background: #17824c; box-shadow: 0 7px 18px rgba(23, 130, 76, 0.22); }
+#download:hover { background: #106b3d; }
 #clear-all { color: #fff; background: #c43c3c; border-color: #c43c3c; }
 #clear-all:hover { color: #fff; background: #a92f2f; border-color: #a92f2f; }
 .button svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
