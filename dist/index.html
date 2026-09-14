@@ -10,11 +10,22 @@
 </head>
 <body>
   <header class="app-header">
-    <div class="brand">
-      <img class="brand-logo" src="./serviciudad-logo.png" alt="Serviciudad E.S.P.">
-      <div>
-        <h1>Registro de Horas Extras</h1>
-        <p>Prepara el archivo para nómina</p>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-logo-wrap">
+          <img class="brand-logo" src="./serviciudad-logo.png" alt="Serviciudad E.S.P.">
+        </div>
+        <div class="brand-copy">
+          <span class="eyebrow">Gestión de nómina</span>
+          <h1>Registro de Horas Extras</h1>
+          <p>Prepara el archivo de novedades para importación</p>
+        </div>
+      </div>
+      <div class="autosave-note" title="Los datos se conservan en este navegador">
+        <span class="autosave-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></svg>
+        </span>
+        <span><strong>Guardado automático</strong><small>en este equipo</small></span>
       </div>
     </div>
   </header>
@@ -23,7 +34,7 @@
     <section class="period-card" aria-labelledby="period-title">
       <div class="section-heading">
         <div>
-          <span class="step">1</span>
+          <span class="step" aria-hidden="true">1</span>
           <div>
             <h2 id="period-title">Periodo de nómina</h2>
             <p>Se aplicará a todos los registros.</p>
@@ -44,22 +55,26 @@
     <section class="records-card" aria-labelledby="records-title">
       <div class="section-heading records-heading">
         <div>
-          <span class="step">2</span>
+          <span class="step" aria-hidden="true">2</span>
           <div>
             <h2 id="records-title">Novedades</h2>
             <p>Ingresa una fila por empleado y concepto.</p>
           </div>
         </div>
         <div class="table-actions">
-          <button id="load-example" class="button button-ghost" type="button">Cargar ejemplo</button>
+          <button id="load-example" class="button button-ghost" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 4v6M17 4v6M5 12h4m2 0h4m2 0h2M5 16h4m2 0h4m2 0h2M5 20h4m2 0h4m2 0h2"></path></svg>
+            Cargar ejemplo
+          </button>
           <button id="add-row" class="button button-secondary" type="button">
-            <span aria-hidden="true">＋</span> Agregar fila
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+            Agregar fila
           </button>
         </div>
       </div>
 
       <div class="table-wrap">
-        <table>
+        <table class="records-table">
           <thead>
             <tr>
               <th scope="col">Identificación</th>
@@ -81,14 +96,18 @@
 
     <section class="export-card" aria-labelledby="export-title">
       <div>
-        <span class="step">3</span>
+        <span class="step" aria-hidden="true">3</span>
         <div>
+          <span class="export-kicker">Paso final</span>
           <h2 id="export-title">Archivo para nómina</h2>
           <p id="status-message" role="status">Completa los datos para descargar el Excel.</p>
         </div>
       </div>
       <div class="export-actions">
-        <button id="clear-all" class="button button-ghost danger" type="button">Limpiar</button>
+        <button id="clear-all" class="button button-ghost danger" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"></path></svg>
+          Limpiar
+        </button>
         <button id="download" class="button button-primary" type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 20h14"></path></svg>
           Descargar Excel
@@ -97,7 +116,7 @@
     </section>
 
     <details class="format-details">
-      <summary>Ver formato que se descargará</summary>
+      <summary><span>Vista previa del formato de nómina</span><small>7 columnas requeridas</small></summary>
       <div class="preview-wrap">
         <table class="preview-table">
           <thead><tr><th>IDENTIFICACION</th><th>CODCONCEPTO</th><th>FECHA_PRO_INI</th><th>FECHA_PRO_FIN</th><th>NROHORAS</th><th>AÑO</th><th>MES</th></tr></thead>
