@@ -2,6 +2,7 @@
   "use strict";
 
   const CONCEPTS = [
+    ["005", "Recargo nocturno"],
     ["006", "Hora extra diurna"],
     ["007", "Hora extra nocturna"],
     ["008", "Hora extra diurna festiva"],
@@ -64,9 +65,9 @@
 
   function conceptOptions(selected) {
     const groups = [
-      ["Horas extras", CONCEPTS.slice(0, 4)],
-      ["Simple disponibilidad", CONCEPTS.slice(4, 8)],
-      ["Ejecución de disponibilidad", CONCEPTS.slice(8)]
+      ["Recargos y horas extras", CONCEPTS.slice(0, 5)],
+      ["Simple disponibilidad", CONCEPTS.slice(5, 9)],
+      ["Ejecución de disponibilidad", CONCEPTS.slice(9)]
     ];
     return `<option value="">Seleccionar concepto</option>${groups.map(([label, concepts]) =>
       `<optgroup label="${label}">${concepts.map(([code, name]) => `<option value="${code}"${selected === code ? " selected" : ""}>${code} — ${name}</option>`).join("")}</optgroup>`

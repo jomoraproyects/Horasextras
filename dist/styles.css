@@ -43,27 +43,9 @@ button { touch-action: manipulation; }
 }
 
 .brand { display: flex; align-items: center; gap: 14px; }
-.brand-mark {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.17);
-}
-.brand-mark svg { width: 37px; fill: none; stroke: white; stroke-width: 2.7; stroke-linecap: round; stroke-linejoin: round; }
+.brand-logo { width: clamp(118px, 14vw, 164px); height: 48px; object-fit: contain; object-position: left center; }
 .brand h1 { margin: 0; font-size: clamp(1.25rem, 2vw, 1.55rem); letter-spacing: -0.02em; }
 .brand p { margin: 2px 0 0; color: #c9deeb; font-size: 0.9rem; }
-.privacy-badge {
-  padding: 8px 12px;
-  border-radius: 999px;
-  color: #d8effb;
-  background: rgba(255, 255, 255, 0.09);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  font-size: 0.85rem;
-  white-space: nowrap;
-}
 
 .page-shell { width: min(1180px, calc(100% - 32px)); margin: 28px auto 56px; }
 .period-card, .records-card, .export-card, .format-details {
@@ -196,7 +178,6 @@ td { padding: 9px 10px; border-top: 1px solid var(--line); vertical-align: middl
 
 @media (max-width: 760px) {
   .app-header { align-items: flex-start; }
-  .privacy-badge { display: none; }
   .page-shell { width: min(100% - 20px, 1180px); margin-top: 16px; }
   .section-heading, .export-card { align-items: stretch; flex-direction: column; }
   .records-heading { gap: 18px; }
@@ -210,7 +191,8 @@ td { padding: 9px 10px; border-top: 1px solid var(--line); vertical-align: middl
 }
 
 @media (max-width: 430px) {
-  .brand-mark { display: none; }
+  .brand { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .brand-logo { width: 126px; height: 34px; }
   .brand h1 { font-size: 1.15rem; }
   .period-card, .records-card { padding: 17px; border-radius: 15px; }
   .table-actions { flex-direction: column; }
