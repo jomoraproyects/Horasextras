@@ -120,6 +120,10 @@ input.invalid, select.invalid { border-color: var(--danger); box-shadow: 0 0 0 3
 .button-ghost { color: var(--navy); background: #fff; border-color: #cddae2; }
 .button-ghost:hover { background: #f5f9fb; border-color: #aabdc8; }
 .button-ghost.danger { color: var(--danger); }
+#add-row { background: #17824c; }
+#add-row:hover { background: #106b3d; }
+#clear-all { color: #fff; background: #c43c3c; border-color: #c43c3c; }
+#clear-all:hover { color: #fff; background: #a92f2f; border-color: #a92f2f; }
 .button svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 13px; }
