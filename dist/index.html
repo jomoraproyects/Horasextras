@@ -46,8 +46,8 @@
         <div>
           <span class="step" aria-hidden="true">2</span>
           <div>
-            <h2 id="records-title">Novedades</h2>
-            <p>Ingresa una fila por empleado y concepto.</p>
+            <h2 id="records-title">Empleados y novedades</h2>
+            <p>Escribe cada cédula una sola vez y agrega debajo todos sus conceptos.</p>
           </div>
         </div>
         <div class="table-actions">
@@ -55,26 +55,14 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 4v6M17 4v6M5 12h4m2 0h4m2 0h2M5 16h4m2 0h4m2 0h2M5 20h4m2 0h4m2 0h2"></path></svg>
             Cargar ejemplo
           </button>
-          <button id="add-row" class="button button-secondary" type="button">
+          <button id="add-employee" class="button button-secondary" type="button">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
-            Agregar fila
+            Agregar empleado
           </button>
         </div>
       </div>
 
-      <div class="table-wrap">
-        <table class="records-table">
-          <thead>
-            <tr>
-              <th scope="col">Identificación</th>
-              <th scope="col">Concepto</th>
-              <th scope="col">Número de horas</th>
-              <th scope="col"><span class="sr-only">Acciones</span></th>
-            </tr>
-          </thead>
-          <tbody id="records-body"></tbody>
-        </table>
-      </div>
+      <div id="employees-list" class="employees-list"></div>
 
       <div class="summary-strip" aria-live="polite">
         <div><span>Empleados</span><strong id="employee-count">0</strong></div>

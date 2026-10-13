@@ -1,6 +1,6 @@
 # Registro de Horas Extras
 
-Software web para registrar cédula, concepto y horas por periodo. Consolida filas repetidas y descarga un archivo `.xlsx` con las columnas requeridas por nómina.
+Software web para registrar cada cédula una sola vez y agregarle varios conceptos y horas por periodo. Consolida los registros y descarga un archivo `.xlsx` con las columnas requeridas por nómina.
 
 ## Uso local
 

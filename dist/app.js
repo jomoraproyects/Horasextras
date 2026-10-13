@@ -20,8 +20,9 @@
   ];
   const CONCEPT_CODES = new Set(CONCEPTS.map(([code]) => code));
   const STORAGE_KEY = "registro-horas-extras-v1";
-  let rowSequence = 0;
-  let rows = [];
+  let employeeSequence = 0;
+  let entrySequence = 0;
+  let employees = [];
   let toastTimer;
 
   const elements = {
@@ -29,22 +30,33 @@
     end: document.querySelector("#end-date"),
     year: document.querySelector("#period-year"),
     month: document.querySelector("#period-month"),
-    body: document.querySelector("#records-body"),
+    employeeList: document.querySelector("#employees-list"),
     preview: document.querySelector("#preview-body"),
-    employees: document.querySelector("#employee-count"),
-    records: document.querySelector("#record-count"),
+    employeeCount: document.querySelector("#employee-count"),
+    recordCount: document.querySelector("#record-count"),
     hours: document.querySelector("#hours-total"),
     status: document.querySelector("#status-message"),
     toast: document.querySelector("#toast")
   };
 
-  function makeRow(values = {}) {
-    rowSequence += 1;
+  function makeEntry(values = {}) {
+    entrySequence += 1;
     return {
-      key: `row-${rowSequence}`,
-      identification: String(values.identification || ""),
+      key: `entry-${entrySequence}`,
       concept: String(values.concept || ""),
       hours: values.hours === undefined ? "" : String(values.hours)
+    };
+  }
+
+  function makeEmployee(values = {}) {
+    employeeSequence += 1;
+    const entries = Array.isArray(values.entries) && values.entries.length
+      ? values.entries.map(makeEntry)
+      : [makeEntry()];
+    return {
+      key: `employee-${employeeSequence}`,
+      identification: String(values.identification || ""),
+      entries
     };
   }
 
@@ -73,7 +85,7 @@
       ["Horas extras", CONCEPTS.slice(13)]
     ];
     return `<option value="">Seleccionar concepto</option>${groups.map(([label, concepts]) =>
-      `<optgroup label="${label}">${concepts.map(([code, name]) => `<option value="${code}"${selected === code ? " selected" : ""}>${code}${name ? ` — ${name}` : ""}</option>`).join("")}</optgroup>`
+      `<optgroup label="${label}">${concepts.map(([code, name]) => `<option value="${code}"${selected === code ? " selected" : ""}>${code} — ${name}</option>`).join("")}</optgroup>`
     ).join("")}`;
   }
 
@@ -81,14 +93,47 @@
     return String(value).replace(/[&<>"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[character]));
   }
 
-  function renderRows() {
-    elements.body.innerHTML = rows.map((row, index) => `
-      <tr data-key="${row.key}">
-        <td><div class="id-field"><span class="row-number">${index + 1}</span><input class="identification" inputmode="numeric" autocomplete="off" maxlength="15" aria-label="Identificación de la fila ${index + 1}" placeholder="Ej. 100000001" value="${escapeHtml(row.identification)}"></div></td>
-        <td><select class="concept" aria-label="Concepto de la fila ${index + 1}">${conceptOptions(row.concept)}</select></td>
-        <td><input class="hours" type="number" min="0.01" max="999.99" step="0.01" inputmode="decimal" aria-label="Número de horas de la fila ${index + 1}" placeholder="0" value="${escapeHtml(row.hours)}"></td>
-        <td><button class="remove-row" type="button" aria-label="Eliminar fila ${index + 1}" title="Eliminar fila">×</button></td>
-      </tr>`).join("");
+  function employeeHours(employee) {
+    return employee.entries.reduce((total, entry) => {
+      const hours = Number(entry.hours);
+      return total + (Number.isFinite(hours) && hours > 0 ? hours : 0);
+    }, 0);
+  }
+
+  function renderEmployees() {
+    elements.employeeList.innerHTML = employees.map((employee, employeeIndex) => `
+      <article class="employee-card" data-employee-key="${employee.key}">
+        <header class="employee-header">
+          <div class="employee-identity">
+            <span class="employee-number" aria-hidden="true">${employeeIndex + 1}</span>
+            <label>Identificación
+              <input class="employee-identification" inputmode="numeric" autocomplete="off" maxlength="15" aria-label="Identificación del empleado ${employeeIndex + 1}" placeholder="Ej. 100000001" value="${escapeHtml(employee.identification)}">
+            </label>
+          </div>
+          <div class="employee-header-actions">
+            <div class="employee-hours"><span>Total horas</span><strong>${employeeHours(employee).toLocaleString("es-CO", { maximumFractionDigits: 2 })}</strong></div>
+            <button class="remove-employee" type="button" aria-label="Eliminar empleado ${employeeIndex + 1}" title="Eliminar empleado">×</button>
+          </div>
+        </header>
+        <div class="employee-body">
+          <div class="concept-columns" aria-hidden="true"><span></span><span>Concepto</span><span>Horas</span><span></span></div>
+          <div class="concept-rows">
+            ${employee.entries.map((entry, entryIndex) => `
+              <div class="concept-row" data-entry-key="${entry.key}">
+                <span class="entry-number" aria-hidden="true">${entryIndex + 1}</span>
+                <label class="sr-only" for="concept-${entry.key}">Concepto ${entryIndex + 1} del empleado ${employeeIndex + 1}</label>
+                <select id="concept-${entry.key}" class="concept" aria-label="Concepto ${entryIndex + 1} del empleado ${employeeIndex + 1}">${conceptOptions(entry.concept)}</select>
+                <label class="sr-only" for="hours-${entry.key}">Horas del concepto ${entryIndex + 1}</label>
+                <input id="hours-${entry.key}" class="hours" type="number" min="0.01" max="999.99" step="0.01" inputmode="decimal" aria-label="Horas del concepto ${entryIndex + 1} del empleado ${employeeIndex + 1}" placeholder="0" value="${escapeHtml(entry.hours)}">
+                <button class="remove-concept" type="button" aria-label="Eliminar concepto ${entryIndex + 1}" title="Eliminar concepto">×</button>
+              </div>`).join("")}
+          </div>
+          <button class="add-concept" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+            Agregar concepto
+          </button>
+        </div>
+      </article>`).join("");
     updateSummary();
   }
 
@@ -106,15 +151,17 @@
 
   function aggregateRows() {
     const grouped = new Map();
-    rows.forEach((row) => {
-      const identification = row.identification.trim();
-      const concept = row.concept;
-      const hours = Number(row.hours);
-      if (!identification || !concept || !Number.isFinite(hours) || hours <= 0) return;
-      const key = `${identification}|${concept}`;
-      const existing = grouped.get(key);
-      if (existing) existing.hours = Math.round((existing.hours + hours) * 100) / 100;
-      else grouped.set(key, { identification, concept, hours });
+    employees.forEach((employee) => {
+      const identification = employee.identification.trim();
+      employee.entries.forEach((entry) => {
+        const concept = entry.concept;
+        const hours = Number(entry.hours);
+        if (!identification || !concept || !Number.isFinite(hours) || hours <= 0) return;
+        const key = `${identification}|${concept}`;
+        const existing = grouped.get(key);
+        if (existing) existing.hours = Math.round((existing.hours + hours) * 100) / 100;
+        else grouped.set(key, { identification, concept, hours });
+      });
     });
     return [...grouped.values()].sort((a, b) => {
       const idComparison = a.identification.localeCompare(b.identification, "es", { numeric: true });
@@ -135,21 +182,26 @@
 
   function updateSummary() {
     const aggregated = aggregateRows();
-    const employees = new Set(aggregated.map((row) => row.identification));
+    const employeeIds = new Set(aggregated.map((row) => row.identification));
     const hours = aggregated.reduce((sum, row) => sum + row.hours, 0);
     const period = periodInfo();
     elements.year.textContent = period.year;
     elements.month.textContent = period.month;
-    elements.employees.textContent = employees.size;
-    elements.records.textContent = aggregated.length;
+    elements.employeeCount.textContent = employeeIds.size;
+    elements.recordCount.textContent = aggregated.length;
     elements.hours.textContent = hours.toLocaleString("es-CO", { maximumFractionDigits: 2 });
+    elements.employeeList.querySelectorAll(".employee-card").forEach((card) => {
+      const employee = employees.find((item) => item.key === card.dataset.employeeKey);
+      const total = card.querySelector(".employee-hours strong");
+      if (employee && total) total.textContent = employeeHours(employee).toLocaleString("es-CO", { maximumFractionDigits: 2 });
+    });
     renderPreview(aggregated, period);
     saveState();
   }
 
   function renderPreview(aggregated, period) {
     if (!aggregated.length) {
-      elements.preview.innerHTML = '<tr><td colspan="7">Agrega registros para ver la vista previa.</td></tr>';
+      elements.preview.innerHTML = '<tr><td colspan="7">Agrega empleados y conceptos para ver la vista previa.</td></tr>';
       return;
     }
     elements.preview.innerHTML = aggregated.slice(0, 8).map((row) => `<tr>
@@ -157,16 +209,21 @@
     </tr>`).join("") + (aggregated.length > 8 ? `<tr><td colspan="7">Y ${aggregated.length - 8} registros más…</td></tr>` : "");
   }
 
-  function syncRowFromInput(input) {
-    const tableRow = input.closest("tr");
-    const row = rows.find((item) => item.key === tableRow.dataset.key);
-    if (!row) return;
-    if (input.classList.contains("identification")) {
+  function syncFromInput(input) {
+    const employeeCard = input.closest(".employee-card");
+    const employee = employees.find((item) => item.key === employeeCard?.dataset.employeeKey);
+    if (!employee) return;
+    if (input.classList.contains("employee-identification")) {
       const clean = input.value.replace(/\D/g, "");
       if (input.value !== clean) input.value = clean;
-      row.identification = clean;
-    } else if (input.classList.contains("concept")) row.concept = input.value;
-    else if (input.classList.contains("hours")) row.hours = input.value;
+      employee.identification = clean;
+    } else {
+      const entryRow = input.closest(".concept-row");
+      const entry = employee.entries.find((item) => item.key === entryRow?.dataset.entryKey);
+      if (!entry) return;
+      if (input.classList.contains("concept")) entry.concept = input.value;
+      else if (input.classList.contains("hours")) entry.hours = input.value;
+    }
     input.classList.remove("invalid");
     updateSummary();
   }
@@ -186,27 +243,51 @@
       elements.end.classList.add("invalid");
     }
 
-    let validRows = 0;
-    rows.forEach((row) => {
-      const tr = elements.body.querySelector(`[data-key="${row.key}"]`);
-      const isBlank = !row.identification && !row.concept && !row.hours;
-      if (isBlank) return;
-      validRows += 1;
-      if (!/^\d{3,15}$/.test(row.identification)) {
+    let filledEntries = 0;
+    const identificationFields = new Map();
+    employees.forEach((employee) => {
+      const card = elements.employeeList.querySelector(`[data-employee-key="${employee.key}"]`);
+      const identificationField = card?.querySelector(".employee-identification");
+      const hasEntryData = employee.entries.some((entry) => entry.concept || entry.hours);
+      if (!employee.identification && !hasEntryData) return;
+
+      if (!/^\d{3,15}$/.test(employee.identification)) {
         errors.push("Revisa las identificaciones: deben contener solamente números.");
-        tr?.querySelector(".identification")?.classList.add("invalid");
+        identificationField?.classList.add("invalid");
+      } else {
+        const fields = identificationFields.get(employee.identification) || [];
+        fields.push(identificationField);
+        identificationFields.set(employee.identification, fields);
       }
-      if (!CONCEPT_CODES.has(row.concept)) {
-        errors.push("Selecciona un concepto en todas las filas diligenciadas.");
-        tr?.querySelector(".concept")?.classList.add("invalid");
-      }
-      const hours = Number(row.hours);
-      if (!Number.isFinite(hours) || hours <= 0) {
-        errors.push("Las horas deben ser mayores que cero.");
-        tr?.querySelector(".hours")?.classList.add("invalid");
+
+      let employeeEntries = 0;
+      employee.entries.forEach((entry) => {
+        const entryRow = card?.querySelector(`[data-entry-key="${entry.key}"]`);
+        if (!entry.concept && !entry.hours) return;
+        employeeEntries += 1;
+        filledEntries += 1;
+        if (!CONCEPT_CODES.has(entry.concept)) {
+          errors.push("Selecciona un concepto en todas las novedades diligenciadas.");
+          entryRow?.querySelector(".concept")?.classList.add("invalid");
+        }
+        const hours = Number(entry.hours);
+        if (!Number.isFinite(hours) || hours <= 0) {
+          errors.push("Las horas deben ser mayores que cero.");
+          entryRow?.querySelector(".hours")?.classList.add("invalid");
+        }
+      });
+      if (employee.identification && !employeeEntries) {
+        errors.push("Agrega al menos un concepto para cada empleado.");
+        card?.querySelector(".concept")?.classList.add("invalid");
       }
     });
-    if (!validRows) errors.push("Agrega al menos una novedad completa.");
+
+    identificationFields.forEach((fields) => {
+      if (fields.length < 2) return;
+      errors.push("Cada cédula debe aparecer una sola vez. Agrega sus conceptos dentro del mismo empleado.");
+      fields.forEach((field) => field?.classList.add("invalid"));
+    });
+    if (!filledEntries) errors.push("Agrega al menos un empleado con un concepto y sus horas.");
     return [...new Set(errors)];
   }
 
@@ -236,8 +317,32 @@
 
   function saveState() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ start: elements.start.value, end: elements.end.value, rows }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ start: elements.start.value, end: elements.end.value, employees }));
     } catch (_) { /* El registro sigue funcionando sin almacenamiento local. */ }
+  }
+
+  function migrateLegacyRows(rows) {
+    const migrated = [];
+    const byIdentification = new Map();
+    rows.forEach((row) => {
+      const identification = String(row?.identification || "");
+      const entry = { concept: row?.concept || "", hours: row?.hours === undefined ? "" : row.hours };
+      if (!identification) {
+        if (entry.concept || entry.hours) migrated.push(makeEmployee({ identification, entries: [entry] }));
+        return;
+      }
+      let employee = byIdentification.get(identification);
+      if (!employee) {
+        employee = makeEmployee({ identification });
+        employee.entries = [];
+        byIdentification.set(identification, employee);
+        migrated.push(employee);
+      }
+      employee.entries.push(makeEntry(entry));
+    });
+    migrated.forEach((employee) => { if (!employee.entries.length) employee.entries.push(makeEntry()); });
+    if (!migrated.length) migrated.push(makeEmployee());
+    return migrated;
   }
 
   function loadState() {
@@ -246,22 +351,26 @@
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
       elements.start.value = saved?.start || defaultStart;
       elements.end.value = saved?.end || defaultEnd;
-      rows = Array.isArray(saved?.rows) && saved.rows.length ? saved.rows.map(makeRow) : [makeRow()];
+      if (Array.isArray(saved?.employees) && saved.employees.length) {
+        employees = saved.employees.map(makeEmployee);
+      } else if (Array.isArray(saved?.rows) && saved.rows.length) {
+        employees = migrateLegacyRows(saved.rows);
+      } else {
+        employees = [makeEmployee()];
+      }
     } catch (_) {
       elements.start.value = defaultStart;
       elements.end.value = defaultEnd;
-      rows = [makeRow()];
+      employees = [makeEmployee()];
     }
   }
 
   function loadExample() {
-    rows = [
-      makeRow({ identification: "100000001", concept: "006", hours: 2 }),
-      makeRow({ identification: "100000001", concept: "007", hours: 3.5 }),
-      makeRow({ identification: "100000002", concept: "242", hours: 4 }),
-      makeRow({ identification: "100000002", concept: "243", hours: 2 })
+    employees = [
+      makeEmployee({ identification: "100000001", entries: [{ concept: "006", hours: 2 }, { concept: "007", hours: 3.5 }] }),
+      makeEmployee({ identification: "100000002", entries: [{ concept: "242", hours: 4 }, { concept: "346", hours: 2 }] })
     ];
-    renderRows();
+    renderEmployees();
     elements.status.textContent = "Ejemplo cargado. Puedes modificarlo o descargarlo.";
     showToast("Ejemplo cargado correctamente.");
   }
@@ -271,9 +380,23 @@
     const [start, end] = defaultPeriod();
     elements.start.value = start;
     elements.end.value = end;
-    rows = [makeRow()];
-    renderRows();
+    employees = [makeEmployee()];
+    renderEmployees();
     elements.status.textContent = "Completa los datos para descargar el Excel.";
+  }
+
+  function groupEntriesByEmployee(entries) {
+    const grouped = new Map();
+    entries.forEach((entry) => {
+      const identification = String(entry.identification);
+      let employee = grouped.get(identification);
+      if (!employee) {
+        employee = { identification, entries: [] };
+        grouped.set(identification, employee);
+      }
+      employee.entries.push({ concept: String(entry.concept), hours: entry.hours });
+    });
+    return [...grouped.values()].map(makeEmployee);
   }
 
   function registerWebMcp() {
@@ -283,7 +406,7 @@
     Promise.resolve(context.registerTool({
       name: "stage_overtime_entries",
       title: "Preparar novedades de horas extras",
-      description: "Carga un periodo y varias novedades en el formulario visible sin descargar todavía el archivo.",
+      description: "Carga un periodo y varias novedades agrupadas por empleado sin descargar todavía el archivo.",
       inputSchema: {
         type: "object",
         properties: {
@@ -312,11 +435,11 @@
         if (!entriesAreValid) throw new Error("Hay novedades con identificación, concepto u horas inválidas.");
         elements.start.value = input.startDate;
         elements.end.value = input.endDate;
-        rows = input.entries.map(makeRow);
-        renderRows();
+        employees = groupEntriesByEmployee(input.entries);
+        renderEmployees();
         const errors = validate();
         if (errors.length) throw new Error(errors.join(" "));
-        return { staged: rows.length, finalRecords: aggregateRows().length };
+        return { staged: input.entries.length, employees: employees.length, finalRecords: aggregateRows().length };
       }
     })).catch(() => {});
 
@@ -333,20 +456,41 @@
     })).catch(() => {});
   }
 
-  elements.body.addEventListener("input", (event) => syncRowFromInput(event.target));
-  elements.body.addEventListener("change", (event) => syncRowFromInput(event.target));
-  elements.body.addEventListener("click", (event) => {
-    const button = event.target.closest(".remove-row");
-    if (!button) return;
-    const key = button.closest("tr").dataset.key;
-    rows = rows.filter((row) => row.key !== key);
-    if (!rows.length) rows.push(makeRow());
-    renderRows();
+  elements.employeeList.addEventListener("input", (event) => syncFromInput(event.target));
+  elements.employeeList.addEventListener("change", (event) => syncFromInput(event.target));
+  elements.employeeList.addEventListener("click", (event) => {
+    const employeeCard = event.target.closest(".employee-card");
+    const employee = employees.find((item) => item.key === employeeCard?.dataset.employeeKey);
+    if (!employee) return;
+
+    if (event.target.closest(".add-concept")) {
+      employee.entries.push(makeEntry());
+      renderEmployees();
+      elements.employeeList.querySelector(`[data-employee-key="${employee.key}"] .concept-row:last-child .concept`)?.focus();
+      return;
+    }
+
+    const removeConcept = event.target.closest(".remove-concept");
+    if (removeConcept) {
+      const entryKey = removeConcept.closest(".concept-row")?.dataset.entryKey;
+      employee.entries = employee.entries.filter((entry) => entry.key !== entryKey);
+      if (!employee.entries.length) employee.entries.push(makeEntry());
+      renderEmployees();
+      return;
+    }
+
+    if (event.target.closest(".remove-employee")) {
+      employees = employees.filter((item) => item.key !== employee.key);
+      if (!employees.length) employees.push(makeEmployee());
+      renderEmployees();
+    }
   });
-  document.querySelector("#add-row").addEventListener("click", () => {
-    rows.push(makeRow());
-    renderRows();
-    elements.body.querySelector("tr:last-child .identification")?.focus();
+
+  document.querySelector("#add-employee").addEventListener("click", () => {
+    const employee = makeEmployee();
+    employees.push(employee);
+    renderEmployees();
+    elements.employeeList.querySelector(`[data-employee-key="${employee.key}"] .employee-identification`)?.focus();
   });
   document.querySelector("#load-example").addEventListener("click", loadExample);
   document.querySelector("#download").addEventListener("click", downloadExcel);
@@ -355,6 +499,6 @@
   elements.end.addEventListener("change", updateSummary);
 
   loadState();
-  renderRows();
+  renderEmployees();
   registerWebMcp();
 })();
