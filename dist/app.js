@@ -7,6 +7,7 @@
     ["007", "Hora extra nocturna"],
     ["008", "Hora extra diurna festiva"],
     ["009", "Hora extra nocturna festiva"],
+    ["346", ""],
     ["236", "Simple disponibilidad diurna"],
     ["237", "Simple disponibilidad nocturna"],
     ["238", "Simple disponibilidad diurna festiva"],
@@ -65,12 +66,12 @@
 
   function conceptOptions(selected) {
     const groups = [
-      ["Recargos y horas extras", CONCEPTS.slice(0, 5)],
-      ["Simple disponibilidad", CONCEPTS.slice(5, 9)],
-      ["Ejecución de disponibilidad", CONCEPTS.slice(9)]
+      ["Recargos y horas extras", CONCEPTS.slice(0, 6)],
+      ["Simple disponibilidad", CONCEPTS.slice(6, 10)],
+      ["Ejecución de disponibilidad", CONCEPTS.slice(10)]
     ];
     return `<option value="">Seleccionar concepto</option>${groups.map(([label, concepts]) =>
-      `<optgroup label="${label}">${concepts.map(([code, name]) => `<option value="${code}"${selected === code ? " selected" : ""}>${code} — ${name}</option>`).join("")}</optgroup>`
+      `<optgroup label="${label}">${concepts.map(([code, name]) => `<option value="${code}"${selected === code ? " selected" : ""}>${code}${name ? ` — ${name}` : ""}</option>`).join("")}</optgroup>`
     ).join("")}`;
   }
 
