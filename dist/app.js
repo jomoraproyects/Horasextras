@@ -7,7 +7,6 @@
     ["007", "Hora extra nocturna"],
     ["008", "Hora extra diurna festiva"],
     ["009", "Hora extra nocturna festiva"],
-    ["346", ""],
     ["236", "Simple disponibilidad diurna"],
     ["237", "Simple disponibilidad nocturna"],
     ["238", "Simple disponibilidad diurna festiva"],
@@ -15,7 +14,9 @@
     ["240", "Ejecución disponibilidad diurna"],
     ["241", "Ejecución disponibilidad nocturna"],
     ["242", "Ejecución disponibilidad diurna festiva"],
-    ["243", "Ejecución disponibilidad nocturna festiva"]
+    ["243", "Ejecución disponibilidad nocturna festiva"],
+    ["345", "HORAS EXTRAS DIURNA EN DESCANSO/FESTIVO"],
+    ["346", "HORAS EXTRAS NOCTURNA EN DESCANSO/FESTIVO"]
   ];
   const CONCEPT_CODES = new Set(CONCEPTS.map(([code]) => code));
   const STORAGE_KEY = "registro-horas-extras-v1";
@@ -66,9 +67,10 @@
 
   function conceptOptions(selected) {
     const groups = [
-      ["Recargos y horas extras", CONCEPTS.slice(0, 6)],
-      ["Simple disponibilidad", CONCEPTS.slice(6, 10)],
-      ["Ejecución de disponibilidad", CONCEPTS.slice(10)]
+      ["Recargos y horas extras", CONCEPTS.slice(0, 5)],
+      ["Simple disponibilidad", CONCEPTS.slice(5, 9)],
+      ["Ejecución de disponibilidad", CONCEPTS.slice(9, 13)],
+      ["Horas extras", CONCEPTS.slice(13)]
     ];
     return `<option value="">Seleccionar concepto</option>${groups.map(([label, concepts]) =>
       `<optgroup label="${label}">${concepts.map(([code, name]) => `<option value="${code}"${selected === code ? " selected" : ""}>${code}${name ? ` — ${name}` : ""}</option>`).join("")}</optgroup>`
