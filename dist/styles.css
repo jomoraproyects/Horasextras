@@ -94,6 +94,7 @@ input, select {
 }
 input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(36, 127, 180, 0.14); }
 input.invalid, select.invalid { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(182, 56, 56, 0.1); }
+input.fixed-hours { color: #126d40; background: #edf8f2; border-color: #b9d7c7; font-weight: 800; cursor: not-allowed; }
 .date-arrow { color: #8ba0ad; font-size: 1.4rem; padding-bottom: 10px; }
 
 .records-heading { align-items: flex-start; }

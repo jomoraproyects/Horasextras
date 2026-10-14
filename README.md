@@ -2,6 +2,8 @@
 
 Software web para registrar cada cédula una sola vez y agregarle varios conceptos y horas por periodo. Consolida los registros y descarga un archivo `.xlsx` con las columnas requeridas por nómina.
 
+Los conceptos de simple disponibilidad 236, 237, 238 y 239 asignan automáticamente 3 horas y mantienen ese valor fijo.
+
 Incluye un apartado plegable de **Personal** con el directorio de trabajadores incorporado en la aplicación. Permite buscar por nombre o cédula, consultar el cargo y agregar a la persona seleccionada a las novedades. Los nombres y cargos no se incluyen en el archivo final de nómina.
 
 ## Uso local
