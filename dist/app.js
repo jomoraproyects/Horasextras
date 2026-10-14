@@ -348,8 +348,12 @@
     const source = Array.isArray(window.PERSONNEL_DATA) ? window.PERSONNEL_DATA : [];
     const unique = new Map();
     source.forEach((person) => {
-      const cleanPerson = { name: cleanName(person?.name), identification: cleanIdentification(person?.identification) };
-      if (cleanPerson.name && /^\d{3,15}$/.test(cleanPerson.identification)) unique.set(cleanPerson.identification, cleanPerson);
+      const cleanPerson = {
+        name: cleanName(person?.name),
+        identification: cleanIdentification(person?.identification),
+        role: cleanName(person?.role)
+      };
+      if (cleanPerson.name && cleanPerson.role && /^\d{3,15}$/.test(cleanPerson.identification)) unique.set(cleanPerson.identification, cleanPerson);
     });
     personnel = [...unique.values()].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
   }
@@ -368,14 +372,18 @@
       elements.personnelList.innerHTML = '<div class="personnel-empty"><strong>No se encontraron coincidencias.</strong><span>Prueba con otro nombre o identificación.</span></div>';
       return;
     }
-    elements.personnelList.innerHTML = visible.map((person) => `
+    elements.personnelList.innerHTML = `
+      <div class="personnel-list-header" aria-hidden="true">
+        <span></span><span>Nombre</span><span>Cargo</span><span></span>
+      </div>${visible.map((person) => `
       <div class="personnel-row" data-identification="${escapeHtml(person.identification)}">
         <span class="personnel-initial" aria-hidden="true">${escapeHtml(person.name.charAt(0).toUpperCase())}</span>
         <span class="personnel-data"><strong>${escapeHtml(person.name)}</strong><small>Identificación ${escapeHtml(person.identification)}</small></span>
+        <span class="personnel-role">${escapeHtml(person.role)}</span>
         <span class="personnel-actions">
           <button class="use-personnel" type="button" title="Agregar a las novedades">Usar</button>
         </span>
-      </div>`).join("");
+      </div>`).join("")}`;
   }
 
   function usePerson(identification) {

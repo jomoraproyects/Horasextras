@@ -2,7 +2,7 @@
 
 Software web para registrar cada cédula una sola vez y agregarle varios conceptos y horas por periodo. Consolida los registros y descarga un archivo `.xlsx` con las columnas requeridas por nómina.
 
-Incluye un apartado plegable de **Personal** con el directorio de trabajadores incorporado en la aplicación. Permite buscar por nombre o cédula y agregar a la persona seleccionada a las novedades. Los nombres no se incluyen en el archivo final de nómina.
+Incluye un apartado plegable de **Personal** con el directorio de trabajadores incorporado en la aplicación. Permite buscar por nombre o cédula, consultar el cargo y agregar a la persona seleccionada a las novedades. Los nombres y cargos no se incluyen en el archivo final de nómina.
 
 ## Uso local
 

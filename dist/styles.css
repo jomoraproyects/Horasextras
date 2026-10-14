@@ -268,13 +268,15 @@ td { padding: 9px 10px; border-top: 1px solid var(--line); vertical-align: middl
 .personnel-toolbar { display: grid; grid-template-columns: minmax(240px, 520px); gap: 12px; align-items: end; }
 .personnel-search { max-width: 520px; }
 .personnel-list { max-height: 360px; margin-top: 16px; overflow-y: auto; border: 1px solid var(--line); border-radius: 13px; background: #fff; }
-.personnel-row { min-height: 66px; padding: 10px 12px; display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 12px; border-bottom: 1px solid #e8eef2; }
+.personnel-list-header { position: sticky; top: 0; z-index: 1; min-height: 38px; padding: 8px 12px; display: grid; grid-template-columns: 38px minmax(220px, 1.35fr) minmax(200px, 1fr) auto; align-items: center; gap: 12px; color: var(--muted); background: #f4f8fa; border-bottom: 1px solid var(--line); font-size: 0.76rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+.personnel-row { min-height: 66px; padding: 10px 12px; display: grid; grid-template-columns: 38px minmax(220px, 1.35fr) minmax(200px, 1fr) auto; align-items: center; gap: 12px; border-bottom: 1px solid #e8eef2; }
 .personnel-row:last-child { border-bottom: 0; }
 .personnel-row:hover { background: #f7fafc; }
 .personnel-initial { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: #fff; background: var(--navy); font-weight: 800; }
 .personnel-data { min-width: 0; display: grid; gap: 2px; }
 .personnel-data strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-size: 0.9rem; }
 .personnel-data small { color: var(--muted); font-size: 0.78rem; }
+.personnel-role { color: var(--navy); font-size: 0.84rem; font-weight: 650; line-height: 1.35; }
 .personnel-actions { display: flex; align-items: center; gap: 6px; }
 .use-personnel { min-height: 36px; padding: 7px 13px; border: 1px solid #b9d7c7; border-radius: 9px; color: #126d40; background: #edf8f2; font-weight: 750; cursor: pointer; }
 .use-personnel:hover { color: #fff; background: #17824c; border-color: #17824c; }
@@ -334,6 +336,10 @@ td { padding: 9px 10px; border-top: 1px solid var(--line); vertical-align: middl
   .personnel-count { margin-left: auto; }
   .personnel-toolbar { grid-template-columns: 1fr; }
   .personnel-search { max-width: none; }
+  .personnel-list-header { display: none; }
+  .personnel-row { grid-template-columns: 38px minmax(0, 1fr) auto; align-items: start; }
+  .personnel-role { grid-column: 2 / span 2; }
+  .personnel-role::before { content: "Cargo: "; color: var(--muted); font-weight: 600; }
 }
 
 @media (max-width: 430px) {
