@@ -52,7 +52,7 @@
         </div>
         <div class="table-actions">
           <button id="load-example" class="button button-ghost" type="button">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 4v6M17 4v6M5 12h4m2 0h4m2 0h2M5 16h4m2 0h4m2 0h2M5 20h4m2 0h4m2 0h2"></path></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM15 3v4h4M9 11h6M9 15h6M9 19h4"></path></svg>
             Cargar ejemplo
           </button>
           <button id="add-employee" class="button button-secondary" type="button">
@@ -97,7 +97,7 @@
           <span class="personnel-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 20v-2a4 4 0 0 0-3-3.87M16 2.13a4 4 0 0 1 0 7.75"></path></svg>
           </span>
-          <span><strong>Personal</strong><small>Consulta y administra los trabajadores</small></span>
+          <span><strong>Personal</strong><small>Busca y selecciona trabajadores</small></span>
         </span>
         <span class="personnel-count"><strong id="personnel-count">0</strong> trabajadores</span>
       </summary>
@@ -105,25 +105,9 @@
         <div class="personnel-toolbar">
           <label class="personnel-search">
             <span>Buscar personal</span>
-            <input id="personnel-search" type="search" autocomplete="off" placeholder="Nombre o identificación">
+            <input id="personnel-search" type="search" autocomplete="off" placeholder="Nombre o cédula">
           </label>
-          <label class="button button-secondary personnel-upload" for="personnel-file">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 20h14"></path></svg>
-            Cargar listado
-          </label>
-          <input id="personnel-file" class="sr-only" type="file" accept=".xlsx,.xls,.csv">
         </div>
-
-        <p class="personnel-help">Acepta <strong>NOMBRE + IDENTIFICACION</strong> o el formato <strong>CEDULA, APELLIDO1, APELLIDO2, NOMBRE1 y NOMBRE2</strong>. Se lee únicamente la primera hoja y el listado se guarda en este navegador.</p>
-
-        <form id="personnel-form" class="personnel-form">
-          <label>Nombre completo<input id="personnel-name" type="text" maxlength="120" autocomplete="off" placeholder="Ej. María Gómez"></label>
-          <label>Identificación<input id="personnel-identification" type="text" inputmode="numeric" maxlength="15" autocomplete="off" placeholder="Ej. 10080014"></label>
-          <button class="button button-ghost" type="submit">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
-            Agregar persona
-          </button>
-        </form>
 
         <div id="personnel-list" class="personnel-list" aria-live="polite"></div>
       </div>
@@ -141,8 +125,8 @@
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="./xlsx.full.min.js"></script>
   <script src="./excel.js"></script>
+  <script src="./personnel-data.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

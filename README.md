@@ -2,11 +2,11 @@
 
 Software web para registrar cada cédula una sola vez y agregarle varios conceptos y horas por periodo. Consolida los registros y descarga un archivo `.xlsx` con las columnas requeridas por nómina.
 
-Incluye un apartado plegable de **Personal** para importar la primera hoja de un archivo Excel o CSV. Acepta las columnas `NOMBRE` e `IDENTIFICACION` o el formato separado `CEDULA`, `APELLIDO1`, `APELLIDO2`, `NOMBRE1` y `NOMBRE2`. Permite buscar trabajadores, agregarlos a las novedades y retirarlos del directorio con confirmación. El directorio se guarda solamente en el navegador y los nombres no se incluyen en el archivo final de nómina.
+Incluye un apartado plegable de **Personal** con el directorio de trabajadores incorporado en la aplicación. Permite buscar por nombre o cédula y agregar a la persona seleccionada a las novedades. Los nombres no se incluyen en el archivo final de nómina.
 
 ## Uso local
 
-Ejecute `Abrir_aplicacion.bat` o abra `dist/index.html` en un navegador moderno. No necesita instalar dependencias ni mantener un servidor encendido. La información se guarda únicamente en el almacenamiento local del navegador.
+Ejecute `Abrir_aplicacion.bat` o abra `dist/index.html` en un navegador moderno. No necesita instalar dependencias ni mantener un servidor encendido. Las novedades diligenciadas se guardan únicamente en el almacenamiento local del navegador.
 
 ## Despliegue futuro en un VPS
 
