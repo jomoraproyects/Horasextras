@@ -20,9 +20,11 @@
   ];
   const CONCEPT_CODES = new Set(CONCEPTS.map(([code]) => code));
   const STORAGE_KEY = "registro-horas-extras-v1";
+  const PERSONNEL_STORAGE_KEY = "registro-horas-extras-personal-v1";
   let employeeSequence = 0;
   let entrySequence = 0;
   let employees = [];
+  let personnel = [];
   let toastTimer;
 
   const elements = {
@@ -36,7 +38,14 @@
     recordCount: document.querySelector("#record-count"),
     hours: document.querySelector("#hours-total"),
     status: document.querySelector("#status-message"),
-    toast: document.querySelector("#toast")
+    toast: document.querySelector("#toast"),
+    personnelCount: document.querySelector("#personnel-count"),
+    personnelSearch: document.querySelector("#personnel-search"),
+    personnelList: document.querySelector("#personnel-list"),
+    personnelFile: document.querySelector("#personnel-file"),
+    personnelForm: document.querySelector("#personnel-form"),
+    personnelName: document.querySelector("#personnel-name"),
+    personnelIdentification: document.querySelector("#personnel-identification")
   };
 
   function makeEntry(values = {}) {
@@ -100,6 +109,22 @@
     }, 0);
   }
 
+  function cleanIdentification(value) {
+    return String(value ?? "").replace(/\D/g, "");
+  }
+
+  function cleanName(value) {
+    return String(value ?? "").trim().replace(/\s+/g, " ");
+  }
+
+  function normalizeHeader(value) {
+    return cleanName(value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  }
+
+  function personnelNameFor(identification) {
+    return personnel.find((person) => person.identification === identification)?.name || "";
+  }
+
   function renderEmployees() {
     elements.employeeList.innerHTML = employees.map((employee, employeeIndex) => `
       <article class="employee-card" data-employee-key="${employee.key}">
@@ -108,6 +133,7 @@
             <span class="employee-number" aria-hidden="true">${employeeIndex + 1}</span>
             <label>Identificación
               <input class="employee-identification" inputmode="numeric" autocomplete="off" maxlength="15" aria-label="Identificación del empleado ${employeeIndex + 1}" placeholder="Ej. 100000001" value="${escapeHtml(employee.identification)}">
+              <span class="employee-directory-name">${escapeHtml(personnelNameFor(employee.identification))}</span>
             </label>
           </div>
           <div class="employee-header-actions">
@@ -214,9 +240,11 @@
     const employee = employees.find((item) => item.key === employeeCard?.dataset.employeeKey);
     if (!employee) return;
     if (input.classList.contains("employee-identification")) {
-      const clean = input.value.replace(/\D/g, "");
+      const clean = cleanIdentification(input.value);
       if (input.value !== clean) input.value = clean;
       employee.identification = clean;
+      const name = employeeCard.querySelector(".employee-directory-name");
+      if (name) name.textContent = personnelNameFor(clean);
     } else {
       const entryRow = input.closest(".concept-row");
       const entry = employee.entries.find((item) => item.key === entryRow?.dataset.entryKey);
@@ -319,6 +347,157 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ start: elements.start.value, end: elements.end.value, employees }));
     } catch (_) { /* El registro sigue funcionando sin almacenamiento local. */ }
+  }
+
+  function savePersonnel() {
+    try {
+      localStorage.setItem(PERSONNEL_STORAGE_KEY, JSON.stringify(personnel));
+    } catch (_) { /* El directorio sigue funcionando durante esta sesión. */ }
+  }
+
+  function loadPersonnel() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(PERSONNEL_STORAGE_KEY) || "[]");
+      personnel = Array.isArray(saved)
+        ? saved.map((person) => ({ name: cleanName(person?.name), identification: cleanIdentification(person?.identification) }))
+          .filter((person) => person.name && /^\d{3,15}$/.test(person.identification))
+        : [];
+    } catch (_) {
+      personnel = [];
+    }
+    const unique = new Map();
+    personnel.forEach((person) => unique.set(person.identification, person));
+    personnel = [...unique.values()];
+  }
+
+  function renderPersonnel() {
+    const query = normalizeHeader(elements.personnelSearch.value);
+    const visible = personnel
+      .filter((person) => !query || normalizeHeader(person.name).includes(query) || person.identification.includes(query))
+      .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+    elements.personnelCount.textContent = personnel.length;
+    if (!personnel.length) {
+      elements.personnelList.innerHTML = '<div class="personnel-empty"><strong>No hay personal cargado.</strong><span>Carga un Excel o agrega la primera persona manualmente.</span></div>';
+      return;
+    }
+    if (!visible.length) {
+      elements.personnelList.innerHTML = '<div class="personnel-empty"><strong>No se encontraron coincidencias.</strong><span>Prueba con otro nombre o identificación.</span></div>';
+      return;
+    }
+    elements.personnelList.innerHTML = visible.map((person) => `
+      <div class="personnel-row" data-identification="${escapeHtml(person.identification)}">
+        <span class="personnel-initial" aria-hidden="true">${escapeHtml(person.name.charAt(0).toUpperCase())}</span>
+        <span class="personnel-data"><strong>${escapeHtml(person.name)}</strong><small>Identificación ${escapeHtml(person.identification)}</small></span>
+        <span class="personnel-actions">
+          <button class="use-personnel" type="button" title="Agregar a las novedades">Usar</button>
+          <button class="delete-personnel" type="button" title="Eliminar del listado" aria-label="Eliminar a ${escapeHtml(person.name)} del listado">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"></path></svg>
+          </button>
+        </span>
+      </div>`).join("");
+  }
+
+  function addPerson(name, identification) {
+    const cleanPerson = { name: cleanName(name), identification: cleanIdentification(identification) };
+    if (!cleanPerson.name) return { ok: false, error: "Escribe el nombre completo." };
+    if (!/^\d{3,15}$/.test(cleanPerson.identification)) return { ok: false, error: "La identificación debe contener entre 3 y 15 números." };
+    if (personnel.some((person) => person.identification === cleanPerson.identification)) {
+      return { ok: false, error: "Esa identificación ya está registrada en Personal." };
+    }
+    personnel.push(cleanPerson);
+    savePersonnel();
+    renderPersonnel();
+    renderEmployees();
+    return { ok: true, person: cleanPerson };
+  }
+
+  function usePerson(identification) {
+    const existing = employees.find((employee) => employee.identification === identification);
+    if (existing) {
+      document.querySelector(`[data-employee-key="${existing.key}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      showToast("Esta persona ya está agregada en las novedades.");
+      return;
+    }
+    let employee = employees.find((item) => !item.identification && item.entries.every((entry) => !entry.concept && !entry.hours));
+    if (employee) employee.identification = identification;
+    else {
+      employee = makeEmployee({ identification });
+      employees.push(employee);
+    }
+    renderEmployees();
+    const card = elements.employeeList.querySelector(`[data-employee-key="${employee.key}"]`);
+    card?.scrollIntoView({ behavior: "smooth", block: "center" });
+    card?.querySelector(".concept")?.focus({ preventScroll: true });
+    showToast(`${personnelNameFor(identification)} fue agregado a las novedades.`);
+  }
+
+  function deletePerson(identification) {
+    const person = personnel.find((item) => item.identification === identification);
+    if (!person) return;
+    const confirmed = window.confirm(`¿Eliminar a ${person.name} (${person.identification}) del listado de Personal?\n\nLas novedades que ya hayas registrado para esta persona no se borrarán.`);
+    if (!confirmed) return;
+    personnel = personnel.filter((item) => item.identification !== identification);
+    savePersonnel();
+    renderPersonnel();
+    renderEmployees();
+    showToast(`${person.name} fue eliminado del listado.`);
+  }
+
+  function headerIndexes(row) {
+    const headers = row.map(normalizeHeader);
+    const nameHeaders = new Set(["NOMBRE", "NOMBRECOMPLETO", "EMPLEADO", "TRABAJADOR", "FUNCIONARIO"]);
+    const identificationHeaders = new Set(["IDENTIFICACION", "CEDULA", "DOCUMENTO", "NUMERODOCUMENTO", "NUMERODEDOCUMENTO"]);
+    return {
+      name: headers.findIndex((header) => nameHeaders.has(header)),
+      identification: headers.findIndex((header) => identificationHeaders.has(header))
+    };
+  }
+
+  async function importPersonnel(file) {
+    if (!window.XLSX) throw new Error("No se pudo iniciar el lector de Excel.");
+    const workbook = window.XLSX.read(await file.arrayBuffer(), { type: "array", raw: false });
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = window.XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: "", raw: false });
+    let headerRow = -1;
+    let indexes = { name: -1, identification: -1 };
+    for (let index = 0; index < Math.min(rows.length, 20); index += 1) {
+      const candidate = headerIndexes(rows[index]);
+      if (candidate.name >= 0 && candidate.identification >= 0) {
+        headerRow = index;
+        indexes = candidate;
+        break;
+      }
+    }
+    if (headerRow < 0) throw new Error('No se encontraron las columnas "NOMBRE" e "IDENTIFICACION" en la primera hoja.');
+
+    const imported = new Map();
+    let invalid = 0;
+    rows.slice(headerRow + 1).forEach((row) => {
+      const name = cleanName(row[indexes.name]);
+      const identification = cleanIdentification(row[indexes.identification]);
+      if (!name && !identification) return;
+      if (!name || !/^\d{3,15}$/.test(identification)) {
+        invalid += 1;
+        return;
+      }
+      imported.set(identification, { name, identification });
+    });
+    if (!imported.size) throw new Error("El archivo no contiene trabajadores válidos.");
+
+    const existing = new Map(personnel.map((person) => [person.identification, person]));
+    let added = 0;
+    let updated = 0;
+    imported.forEach((person, identification) => {
+      if (existing.has(identification)) updated += 1;
+      else added += 1;
+      existing.set(identification, person);
+    });
+    personnel = [...existing.values()];
+    savePersonnel();
+    renderPersonnel();
+    renderEmployees();
+    const skippedText = invalid ? ` Se omitieron ${invalid} fila(s) incompleta(s).` : "";
+    showToast(`${added} persona(s) agregada(s) y ${updated} actualizada(s).${skippedText}`);
   }
 
   function migrateLegacyRows(rows) {
@@ -495,10 +674,44 @@
   document.querySelector("#load-example").addEventListener("click", loadExample);
   document.querySelector("#download").addEventListener("click", downloadExcel);
   document.querySelector("#clear-all").addEventListener("click", clearAll);
+  elements.personnelSearch.addEventListener("input", renderPersonnel);
+  elements.personnelIdentification.addEventListener("input", () => {
+    const clean = cleanIdentification(elements.personnelIdentification.value);
+    if (elements.personnelIdentification.value !== clean) elements.personnelIdentification.value = clean;
+  });
+  elements.personnelForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const result = addPerson(elements.personnelName.value, elements.personnelIdentification.value);
+    if (!result.ok) {
+      showToast(result.error, true);
+      return;
+    }
+    elements.personnelForm.reset();
+    showToast(`${result.person.name} fue agregado al listado.`);
+  });
+  elements.personnelFile.addEventListener("change", async () => {
+    const file = elements.personnelFile.files?.[0];
+    if (!file) return;
+    try {
+      await importPersonnel(file);
+    } catch (error) {
+      showToast(error?.message || "No se pudo leer el listado de personal.", true);
+    } finally {
+      elements.personnelFile.value = "";
+    }
+  });
+  elements.personnelList.addEventListener("click", (event) => {
+    const row = event.target.closest(".personnel-row");
+    if (!row) return;
+    if (event.target.closest(".use-personnel")) usePerson(row.dataset.identification);
+    if (event.target.closest(".delete-personnel")) deletePerson(row.dataset.identification);
+  });
   elements.start.addEventListener("change", updateSummary);
   elements.end.addEventListener("change", updateSummary);
 
+  loadPersonnel();
   loadState();
   renderEmployees();
+  renderPersonnel();
   registerWebMcp();
 })();
