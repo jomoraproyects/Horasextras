@@ -2,7 +2,7 @@
 
 Software web para registrar cada cédula una sola vez y agregarle varios conceptos y horas por periodo. Consolida los registros y descarga un archivo `.xlsx` con las columnas requeridas por nómina.
 
-Incluye un apartado plegable de **Personal** para importar la primera hoja de un archivo Excel o CSV con las columnas `NOMBRE` e `IDENTIFICACION`, buscar trabajadores, agregarlos a las novedades y retirarlos del directorio con confirmación. El directorio se guarda solamente en el navegador y los nombres no se incluyen en el archivo final de nómina.
+Incluye un apartado plegable de **Personal** para importar la primera hoja de un archivo Excel o CSV. Acepta las columnas `NOMBRE` e `IDENTIFICACION` o el formato separado `CEDULA`, `APELLIDO1`, `APELLIDO2`, `NOMBRE1` y `NOMBRE2`. Permite buscar trabajadores, agregarlos a las novedades y retirarlos del directorio con confirmación. El directorio se guarda solamente en el navegador y los nombres no se incluyen en el archivo final de nómina.
 
 ## Uso local
 

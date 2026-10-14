@@ -447,33 +447,48 @@
     const headers = row.map(normalizeHeader);
     const nameHeaders = new Set(["NOMBRE", "NOMBRECOMPLETO", "EMPLEADO", "TRABAJADOR", "FUNCIONARIO"]);
     const identificationHeaders = new Set(["IDENTIFICACION", "CEDULA", "DOCUMENTO", "NUMERODOCUMENTO", "NUMERODEDOCUMENTO"]);
+    const findHeader = (accepted) => headers.findIndex((header) => accepted.includes(header));
     return {
       name: headers.findIndex((header) => nameHeaders.has(header)),
-      identification: headers.findIndex((header) => identificationHeaders.has(header))
+      identification: headers.findIndex((header) => identificationHeaders.has(header)),
+      firstName: findHeader(["NOMBRE1", "PRIMERNOMBRE"]),
+      secondName: findHeader(["NOMBRE2", "SEGUNDONOMBRE"]),
+      firstSurname: findHeader(["APELLIDO1", "PRIMERAPELLIDO"]),
+      secondSurname: findHeader(["APELLIDO2", "SEGUNDOAPELLIDO"])
     };
   }
 
-  async function importPersonnel(file) {
-    if (!window.XLSX) throw new Error("No se pudo iniciar el lector de Excel.");
-    const workbook = window.XLSX.read(await file.arrayBuffer(), { type: "array", raw: false });
-    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = window.XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: "", raw: false });
+  function hasPersonnelName(indexes) {
+    return indexes.name >= 0 || [indexes.firstName, indexes.secondName, indexes.firstSurname, indexes.secondSurname].some((index) => index >= 0);
+  }
+
+  function personnelNameFromRow(row, indexes) {
+    if (indexes.name >= 0) return cleanName(row[indexes.name]);
+    return cleanName([
+      indexes.firstName >= 0 ? row[indexes.firstName] : "",
+      indexes.secondName >= 0 ? row[indexes.secondName] : "",
+      indexes.firstSurname >= 0 ? row[indexes.firstSurname] : "",
+      indexes.secondSurname >= 0 ? row[indexes.secondSurname] : ""
+    ].filter((part) => cleanName(part)).join(" "));
+  }
+
+  function parsePersonnelRows(rows) {
     let headerRow = -1;
-    let indexes = { name: -1, identification: -1 };
+    let indexes = { name: -1, identification: -1, firstName: -1, secondName: -1, firstSurname: -1, secondSurname: -1 };
     for (let index = 0; index < Math.min(rows.length, 20); index += 1) {
       const candidate = headerIndexes(rows[index]);
-      if (candidate.name >= 0 && candidate.identification >= 0) {
+      if (hasPersonnelName(candidate) && candidate.identification >= 0) {
         headerRow = index;
         indexes = candidate;
         break;
       }
     }
-    if (headerRow < 0) throw new Error('No se encontraron las columnas "NOMBRE" e "IDENTIFICACION" en la primera hoja.');
+    if (headerRow < 0) throw new Error('No se encontró un formato válido. Usa "NOMBRE" e "IDENTIFICACION", o "CEDULA", "APELLIDO1", "APELLIDO2", "NOMBRE1" y "NOMBRE2".');
 
     const imported = new Map();
     let invalid = 0;
     rows.slice(headerRow + 1).forEach((row) => {
-      const name = cleanName(row[indexes.name]);
+      const name = personnelNameFromRow(row, indexes);
       const identification = cleanIdentification(row[indexes.identification]);
       if (!name && !identification) return;
       if (!name || !/^\d{3,15}$/.test(identification)) {
@@ -483,6 +498,16 @@
       imported.set(identification, { name, identification });
     });
     if (!imported.size) throw new Error("El archivo no contiene trabajadores válidos.");
+    return { people: [...imported.values()], invalid };
+  }
+
+  async function importPersonnel(file) {
+    if (!window.XLSX) throw new Error("No se pudo iniciar el lector de Excel.");
+    const workbook = window.XLSX.read(await file.arrayBuffer(), { type: "array", raw: false });
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = window.XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: "", raw: false });
+    const parsed = parsePersonnelRows(rows);
+    const imported = new Map(parsed.people.map((person) => [person.identification, person]));
 
     const existing = new Map(personnel.map((person) => [person.identification, person]));
     let added = 0;
@@ -496,7 +521,7 @@
     savePersonnel();
     renderPersonnel();
     renderEmployees();
-    const skippedText = invalid ? ` Se omitieron ${invalid} fila(s) incompleta(s).` : "";
+    const skippedText = parsed.invalid ? ` Se omitieron ${parsed.invalid} fila(s) incompleta(s).` : "";
     showToast(`${added} persona(s) agregada(s) y ${updated} actualizada(s).${skippedText}`);
   }
 
