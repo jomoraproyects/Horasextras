@@ -44,13 +44,23 @@
     personnelList: document.querySelector("#personnel-list")
   };
 
+  function normalizeHoursText(value) {
+    return String(value ?? "").trim().replace(/,/g, ".");
+  }
+
+  function parseHours(value) {
+    const normalized = normalizeHoursText(value);
+    if (!/^\d+(?:\.\d+)?$/.test(normalized)) return Number.NaN;
+    return Number(normalized);
+  }
+
   function makeEntry(values = {}) {
     entrySequence += 1;
     const concept = String(values.concept || "");
     return {
       key: `entry-${entrySequence}`,
       concept,
-      hours: SIMPLE_AVAILABILITY_CODES.has(concept) ? "3" : (values.hours === undefined ? "" : String(values.hours))
+      hours: SIMPLE_AVAILABILITY_CODES.has(concept) ? "3" : (values.hours === undefined ? "" : normalizeHoursText(values.hours))
     };
   }
 
@@ -101,7 +111,7 @@
 
   function employeeHours(employee) {
     return employee.entries.reduce((total, entry) => {
-      const hours = Number(entry.hours);
+      const hours = parseHours(entry.hours);
       return total + (Number.isFinite(hours) && hours > 0 ? hours : 0);
     }, 0);
   }
@@ -147,7 +157,7 @@
                 <label class="sr-only" for="concept-${entry.key}">Concepto ${entryIndex + 1} del empleado ${employeeIndex + 1}</label>
                 <select id="concept-${entry.key}" class="concept" aria-label="Concepto ${entryIndex + 1} del empleado ${employeeIndex + 1}">${conceptOptions(entry.concept)}</select>
                 <label class="sr-only" for="hours-${entry.key}">Horas del concepto ${entryIndex + 1}</label>
-                <input id="hours-${entry.key}" class="hours${SIMPLE_AVAILABILITY_CODES.has(entry.concept) ? " fixed-hours" : ""}" type="number" min="0.01" max="999.99" step="0.01" inputmode="decimal" aria-label="Horas del concepto ${entryIndex + 1} del empleado ${employeeIndex + 1}" placeholder="0" value="${escapeHtml(entry.hours)}"${SIMPLE_AVAILABILITY_CODES.has(entry.concept) ? ' readonly aria-readonly="true" title="Este concepto siempre corresponde a 3 horas."' : ""}>
+                <input id="hours-${entry.key}" class="hours${SIMPLE_AVAILABILITY_CODES.has(entry.concept) ? " fixed-hours" : ""}" type="text" inputmode="decimal" autocomplete="off" pattern="\\d+(?:[.,]\\d+)?" aria-label="Horas del concepto ${entryIndex + 1} del empleado ${employeeIndex + 1}" placeholder="0 o 0.5" value="${escapeHtml(entry.hours)}"${SIMPLE_AVAILABILITY_CODES.has(entry.concept) ? ' readonly aria-readonly="true" title="Este concepto siempre corresponde a 3 horas."' : ""}>
                 <button class="remove-concept" type="button" aria-label="Eliminar concepto ${entryIndex + 1}" title="Eliminar concepto">×</button>
               </div>`).join("")}
           </div>
@@ -178,7 +188,7 @@
       const identification = employee.identification.trim();
       employee.entries.forEach((entry) => {
         const concept = entry.concept;
-        const hours = SIMPLE_AVAILABILITY_CODES.has(concept) ? 3 : Number(entry.hours);
+        const hours = SIMPLE_AVAILABILITY_CODES.has(concept) ? 3 : parseHours(entry.hours);
         if (!identification || !concept || !Number.isFinite(hours) || hours <= 0) return;
         const key = `${identification}|${concept}`;
         const existing = grouped.get(key);
@@ -262,7 +272,11 @@
           hoursInput.removeAttribute("title");
           hoursInput.classList.remove("fixed-hours");
         }
-      } else if (input.classList.contains("hours")) entry.hours = input.value;
+      } else if (input.classList.contains("hours")) {
+        const normalized = normalizeHoursText(input.value);
+        if (input.value !== normalized) input.value = normalized;
+        entry.hours = normalized;
+      }
     }
     input.classList.remove("invalid");
     updateSummary();
@@ -310,7 +324,7 @@
           errors.push("Selecciona un concepto en todas las novedades diligenciadas.");
           entryRow?.querySelector(".concept")?.classList.add("invalid");
         }
-        const hours = Number(entry.hours);
+        const hours = parseHours(entry.hours);
         if (!Number.isFinite(hours) || hours <= 0) {
           errors.push("Las horas deben ser mayores que cero.");
           entryRow?.querySelector(".hours")?.classList.add("invalid");
@@ -468,16 +482,6 @@
     }
   }
 
-  function loadExample() {
-    employees = [
-      makeEmployee({ identification: "100000001", entries: [{ concept: "006", hours: 2 }, { concept: "007", hours: 3.5 }] }),
-      makeEmployee({ identification: "100000002", entries: [{ concept: "242", hours: 4 }, { concept: "346", hours: 2 }] })
-    ];
-    renderEmployees();
-    elements.status.textContent = "Ejemplo cargado. Puedes modificarlo o descargarlo.";
-    showToast("Ejemplo cargado correctamente.");
-  }
-
   function clearAll() {
     if (!window.confirm("¿Quieres borrar el periodo y todas las novedades ingresadas?")) return;
     const [start, end] = defaultPeriod();
@@ -533,7 +537,7 @@
         const entriesAreValid = input.entries.every((entry) =>
           entry && /^\d{3,15}$/.test(String(entry.identification || "")) &&
           CONCEPT_CODES.has(String(entry.concept || "")) &&
-          Number.isFinite(Number(entry.hours)) && Number(entry.hours) > 0
+          Number.isFinite(parseHours(entry.hours)) && parseHours(entry.hours) > 0
         );
         if (!entriesAreValid) throw new Error("Hay novedades con identificación, concepto u horas inválidas.");
         elements.start.value = input.startDate;
@@ -595,7 +599,6 @@
     renderEmployees();
     elements.employeeList.querySelector(`[data-employee-key="${employee.key}"] .employee-identification`)?.focus();
   });
-  document.querySelector("#load-example").addEventListener("click", loadExample);
   document.querySelector("#download").addEventListener("click", downloadExcel);
   document.querySelector("#clear-all").addEventListener("click", clearAll);
   elements.personnelSearch.addEventListener("input", renderPersonnel);

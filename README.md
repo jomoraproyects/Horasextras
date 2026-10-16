@@ -18,4 +18,4 @@ El contenido de la carpeta `dist` es estático. Para publicarlo, copie esa carpe
 
 `IDENTIFICACION`, `CODCONCEPTO`, `FECHA_PRO_INI`, `FECHA_PRO_FIN`, `NROHORAS`, `AÑO`, `MES`.
 
-La columna `NROHORAS` se exporta como número real de Excel y admite hasta dos decimales con punto, por ejemplo `4.2`.
+La columna `NROHORAS` se exporta como número real de Excel y admite hasta dos decimales con punto. El formulario acepta tanto `14.5` como `14,5` y los normaliza a `14.5`. Las horas enteras conservan el punto visible, por ejemplo `21.`.
