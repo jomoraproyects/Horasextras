@@ -54,6 +54,11 @@
     return Number(normalized);
   }
 
+  function formatHours(value) {
+    const rounded = Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+    return Number.isFinite(rounded) ? String(rounded) : "0";
+  }
+
   function makeEntry(values = {}) {
     entrySequence += 1;
     const concept = String(values.concept || "");
@@ -144,7 +149,7 @@
             </label>
           </div>
           <div class="employee-header-actions">
-            <div class="employee-hours"><span>Total horas</span><strong>${employeeHours(employee).toLocaleString("es-CO", { maximumFractionDigits: 2 })}</strong></div>
+            <div class="employee-hours"><span>Total horas</span><strong>${formatHours(employeeHours(employee))}</strong></div>
             <button class="remove-employee" type="button" aria-label="Eliminar empleado ${employeeIndex + 1}" title="Eliminar empleado">×</button>
           </div>
         </header>
@@ -222,11 +227,11 @@
     elements.month.textContent = period.month;
     elements.employeeCount.textContent = employeeIds.size;
     elements.recordCount.textContent = aggregated.length;
-    elements.hours.textContent = hours.toLocaleString("es-CO", { maximumFractionDigits: 2 });
+    elements.hours.textContent = formatHours(hours);
     elements.employeeList.querySelectorAll(".employee-card").forEach((card) => {
       const employee = employees.find((item) => item.key === card.dataset.employeeKey);
       const total = card.querySelector(".employee-hours strong");
-      if (employee && total) total.textContent = employeeHours(employee).toLocaleString("es-CO", { maximumFractionDigits: 2 });
+      if (employee && total) total.textContent = formatHours(employeeHours(employee));
     });
     renderPreview(aggregated, period);
     saveState();
