@@ -17,3 +17,5 @@ El contenido de la carpeta `dist` es estático. Para publicarlo, copie esa carpe
 ## Formato generado
 
 `IDENTIFICACION`, `CODCONCEPTO`, `FECHA_PRO_INI`, `FECHA_PRO_FIN`, `NROHORAS`, `AÑO`, `MES`.
+
+La columna `NROHORAS` se exporta como número real de Excel y admite hasta dos decimales con punto, por ejemplo `4.2`.
