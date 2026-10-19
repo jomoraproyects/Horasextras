@@ -26,7 +26,7 @@
           <span class="step" aria-hidden="true">1</span>
           <div>
             <h2 id="period-title">Periodo de nómina</h2>
-            <p>Se aplicará a todos los registros.</p>
+            <p>Siempre se aplicará del día 1 al 15 del mes seleccionado.</p>
           </div>
         </div>
         <div class="derived-period" aria-live="polite">
@@ -35,9 +35,14 @@
         </div>
       </div>
       <div class="period-fields">
-        <label>Fecha inicial<input id="start-date" type="date" required></label>
-        <span class="date-arrow" aria-hidden="true">→</span>
-        <label>Fecha final<input id="end-date" type="date" required></label>
+        <label>Mes del periodo<input id="period-month-input" type="month" required></label>
+        <div class="fixed-period-range" aria-live="polite">
+          <span><small>Fecha inicial</small><strong id="start-date-label">—</strong></span>
+          <span class="date-arrow" aria-hidden="true">→</span>
+          <span><small>Fecha final</small><strong id="end-date-label">—</strong></span>
+        </div>
+        <input id="start-date" type="hidden">
+        <input id="end-date" type="hidden">
       </div>
     </section>
 
@@ -109,15 +114,6 @@
       </div>
     </details>
 
-    <details class="format-details">
-      <summary>Ver formato que se descargará</summary>
-      <div class="preview-wrap">
-        <table class="preview-table">
-          <thead><tr><th>IDENTIFICACION</th><th>CODCONCEPTO</th><th>FECHA_PRO_INI</th><th>FECHA_PRO_FIN</th><th>NROHORAS</th><th>AÑO</th><th>MES</th></tr></thead>
-          <tbody id="preview-body"><tr><td colspan="7">Agrega registros para ver la vista previa.</td></tr></tbody>
-        </table>
-      </div>
-    </details>
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>

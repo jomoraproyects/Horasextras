@@ -2,6 +2,8 @@
 
 Software web para registrar cada cédula una sola vez y agregarle varios conceptos y horas por periodo. Consolida los registros y descarga un archivo `.xlsx` con las columnas requeridas por nómina.
 
+El periodo se selecciona por mes y queda fijado automáticamente del día 1 al 15 para todos los registros.
+
 Los conceptos de simple disponibilidad 236, 237, 238 y 239 asignan automáticamente 3 horas y mantienen ese valor fijo.
 
 Incluye un apartado plegable de **Personal** con el directorio de trabajadores incorporado en la aplicación. Permite buscar por nombre o cédula, consultar el cargo y agregar a la persona seleccionada a las novedades. Los nombres y cargos no se incluyen en el archivo final de nómina.
@@ -18,4 +20,4 @@ El contenido de la carpeta `dist` es estático. Para publicarlo, copie esa carpe
 
 `IDENTIFICACION`, `CODCONCEPTO`, `FECHA_PRO_INI`, `FECHA_PRO_FIN`, `NROHORAS`, `AÑO`, `MES`.
 
-La columna `NROHORAS` se exporta como número real de Excel y admite hasta dos decimales con punto. El formulario acepta tanto `14.5` como `14,5` y los normaliza a `14.5`. Las horas enteras se muestran sin decimales, por ejemplo `21`.
+La columna `NROHORAS` se exporta como número real de Excel y admite hasta dos decimales. El formulario acepta tanto `14.5` como `14,5` y guarda el mismo valor numérico. Las horas enteras se muestran sin separador decimal; Excel muestra los decimales con el separador configurado en cada equipo.

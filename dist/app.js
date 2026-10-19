@@ -28,12 +28,14 @@
   let toastTimer;
 
   const elements = {
+    periodMonth: document.querySelector("#period-month-input"),
     start: document.querySelector("#start-date"),
     end: document.querySelector("#end-date"),
+    startLabel: document.querySelector("#start-date-label"),
+    endLabel: document.querySelector("#end-date-label"),
     year: document.querySelector("#period-year"),
     month: document.querySelector("#period-month"),
     employeeList: document.querySelector("#employees-list"),
-    preview: document.querySelector("#preview-body"),
     employeeCount: document.querySelector("#employee-count"),
     recordCount: document.querySelector("#record-count"),
     hours: document.querySelector("#hours-total"),
@@ -92,10 +94,22 @@
     const today = new Date();
     const year = today.getFullYear();
     const month = today.getMonth();
-    if (today.getDate() <= 15) {
-      return [toIsoDate(new Date(year, month, 1)), toIsoDate(new Date(year, month, 15))];
+    return [toIsoDate(new Date(year, month, 1)), toIsoDate(new Date(year, month, 15))];
+  }
+
+  function setPeriodFromMonth(monthValue) {
+    if (!/^\d{4}-\d{2}$/.test(monthValue || "")) {
+      elements.start.value = "";
+      elements.end.value = "";
+      elements.startLabel.textContent = "—";
+      elements.endLabel.textContent = "—";
+      return;
     }
-    return [toIsoDate(new Date(year, month, 16)), toIsoDate(new Date(year, month + 1, 0))];
+    elements.periodMonth.value = monthValue;
+    elements.start.value = `${monthValue}-01`;
+    elements.end.value = `${monthValue}-15`;
+    elements.startLabel.textContent = formatDate(elements.start.value);
+    elements.endLabel.textContent = formatDate(elements.end.value);
   }
 
   function conceptOptions(selected) {
@@ -233,18 +247,7 @@
       const total = card.querySelector(".employee-hours strong");
       if (employee && total) total.textContent = formatHours(employeeHours(employee));
     });
-    renderPreview(aggregated, period);
     saveState();
-  }
-
-  function renderPreview(aggregated, period) {
-    if (!aggregated.length) {
-      elements.preview.innerHTML = '<tr><td colspan="7">Agrega empleados y conceptos para ver la vista previa.</td></tr>';
-      return;
-    }
-    elements.preview.innerHTML = aggregated.slice(0, 8).map((row) => `<tr>
-      <td>${escapeHtml(row.identification)}</td><td>${row.concept}</td><td>${formatDate(elements.start.value)}</td><td>${formatDate(elements.end.value)}</td><td>${row.hours}</td><td>${period.year}</td><td>${period.month}</td>
-    </tr>`).join("") + (aggregated.length > 8 ? `<tr><td colspan="7">Y ${aggregated.length - 8} registros más…</td></tr>` : "");
   }
 
   function syncFromInput(input) {
@@ -290,16 +293,18 @@
   function validate() {
     document.querySelectorAll(".invalid").forEach((field) => field.classList.remove("invalid"));
     const errors = [];
-    if (!elements.start.value) { errors.push("Selecciona la fecha inicial."); elements.start.classList.add("invalid"); }
-    if (!elements.end.value) { errors.push("Selecciona la fecha final."); elements.end.classList.add("invalid"); }
+    if (!elements.periodMonth.value) { errors.push("Selecciona el mes del periodo."); elements.periodMonth.classList.add("invalid"); }
     if (elements.start.value && elements.end.value && elements.end.value < elements.start.value) {
       errors.push("La fecha final no puede ser anterior a la inicial.");
       elements.end.classList.add("invalid");
     }
     if (elements.start.value && elements.end.value && elements.start.value.slice(0, 7) !== elements.end.value.slice(0, 7)) {
       errors.push("El periodo debe comenzar y terminar en el mismo mes.");
-      elements.start.classList.add("invalid");
-      elements.end.classList.add("invalid");
+      elements.periodMonth.classList.add("invalid");
+    }
+    if (elements.start.value && elements.end.value && (!elements.start.value.endsWith("-01") || !elements.end.value.endsWith("-15"))) {
+      errors.push("El periodo debe estar comprendido entre los días 1 y 15.");
+      elements.periodMonth.classList.add("invalid");
     }
 
     let filledEntries = 0;
@@ -468,11 +473,11 @@
   }
 
   function loadState() {
-    const [defaultStart, defaultEnd] = defaultPeriod();
+    const [defaultStart] = defaultPeriod();
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-      elements.start.value = saved?.start || defaultStart;
-      elements.end.value = saved?.end || defaultEnd;
+      const savedMonth = /^\d{4}-\d{2}-\d{2}$/.test(saved?.start || "") ? saved.start.slice(0, 7) : defaultStart.slice(0, 7);
+      setPeriodFromMonth(savedMonth);
       if (Array.isArray(saved?.employees) && saved.employees.length) {
         employees = saved.employees.map(makeEmployee);
       } else if (Array.isArray(saved?.rows) && saved.rows.length) {
@@ -481,17 +486,15 @@
         employees = [makeEmployee()];
       }
     } catch (_) {
-      elements.start.value = defaultStart;
-      elements.end.value = defaultEnd;
+      setPeriodFromMonth(defaultStart.slice(0, 7));
       employees = [makeEmployee()];
     }
   }
 
   function clearAll() {
     if (!window.confirm("¿Quieres borrar el periodo y todas las novedades ingresadas?")) return;
-    const [start, end] = defaultPeriod();
-    elements.start.value = start;
-    elements.end.value = end;
+    const [start] = defaultPeriod();
+    setPeriodFromMonth(start.slice(0, 7));
     employees = [makeEmployee()];
     renderEmployees();
     elements.status.textContent = "Completa los datos para descargar el Excel.";
@@ -518,7 +521,7 @@
     Promise.resolve(context.registerTool({
       name: "stage_overtime_entries",
       title: "Preparar novedades de horas extras",
-      description: "Carga un periodo y varias novedades agrupadas por empleado sin descargar todavía el archivo.",
+      description: "Carga novedades agrupadas por empleado para un periodo fijo del día 1 al 15, sin descargar todavía el archivo.",
       inputSchema: {
         type: "object",
         properties: {
@@ -538,6 +541,9 @@
         if (input.endDate < input.startDate || input.startDate.slice(0, 7) !== input.endDate.slice(0, 7)) {
           throw new Error("El periodo debe comenzar y terminar en el mismo mes.");
         }
+        if (!input.startDate.endsWith("-01") || !input.endDate.endsWith("-15")) {
+          throw new Error("El periodo debe estar comprendido entre los días 1 y 15.");
+        }
         if (!Array.isArray(input.entries) || !input.entries.length) throw new Error("Se requiere al menos una novedad.");
         const entriesAreValid = input.entries.every((entry) =>
           entry && /^\d{3,15}$/.test(String(entry.identification || "")) &&
@@ -545,8 +551,7 @@
           Number.isFinite(parseHours(entry.hours)) && parseHours(entry.hours) > 0
         );
         if (!entriesAreValid) throw new Error("Hay novedades con identificación, concepto u horas inválidas.");
-        elements.start.value = input.startDate;
-        elements.end.value = input.endDate;
+        setPeriodFromMonth(input.startDate.slice(0, 7));
         employees = groupEntriesByEmployee(input.entries);
         renderEmployees();
         const errors = validate();
@@ -612,8 +617,11 @@
     if (!row) return;
     if (event.target.closest(".use-personnel")) usePerson(row.dataset.identification);
   });
-  elements.start.addEventListener("change", updateSummary);
-  elements.end.addEventListener("change", updateSummary);
+  elements.periodMonth.addEventListener("change", () => {
+    elements.periodMonth.classList.remove("invalid");
+    setPeriodFromMonth(elements.periodMonth.value);
+    updateSummary();
+  });
 
   loadPersonnel();
   loadState();
