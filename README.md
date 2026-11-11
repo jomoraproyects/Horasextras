@@ -4,7 +4,7 @@ Software web para registrar cada cédula una sola vez y agregarle varios concept
 
 El periodo se selecciona por mes y queda fijado automáticamente del día 1 al 15 para todos los registros.
 
-Los conceptos de simple disponibilidad 236, 237, 238 y 239 asignan automáticamente 3 horas y mantienen ese valor fijo.
+Los conceptos de simple disponibilidad 236, 237, 238 y 239 permiten ingresar las horas libremente, igual que los demás conceptos.
 
 Incluye un apartado plegable de **Personal** con el directorio de trabajadores incorporado en la aplicación. Permite buscar por nombre o cédula, consultar el cargo y agregar a la persona seleccionada a las novedades. Los nombres y cargos no se incluyen en el archivo final de nómina.
 
